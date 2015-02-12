@@ -3,7 +3,11 @@
 
 .PHONY: all standalone distributed clean 
 
-STREAMS_INET_TOOLKIT ?=../../com.ibm.streamsx.inet
+TOOLKIT_NAME=com.ibm.streamsx.inet
+STREAMS_INET_TOOLKIT ?= $(shell  ([ -e ../../$(TOOLKIT_NAME) ] && echo ../../$(TOOLKIT_NAME)) ||\
+						([ -e "../com.ibm.streamsx.hbase" ] && echo ../$(TOOLKIT_NAME)) ||\
+						echo $(STREAMS_INSTALL)/toolkits/$(TOOLKIT_NAME))
+
 SPLC_FLAGS ?= -a -t $(STREAMS_INET_TOOLKIT)
 SPLC = $(STREAMS_INSTALL)/bin/sc
 SPL_CMD_ARGS ?= 
