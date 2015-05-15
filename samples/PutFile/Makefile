@@ -10,7 +10,7 @@ endif
 
 TOOLKIT_NAME=com.ibm.streamsx.inet
 STREAMS_INET_TOOLKIT ?= $(shell  ([ -e ../../$(TOOLKIT_NAME) ] && echo ../../$(TOOLKIT_NAME)) ||\
-						([ -e "../com.ibm.streamsx.hbase" ] && echo ../$(TOOLKIT_NAME)) ||\
+						([ -e  ../$(TOOLKIT_NAME) ] && echo ../$(TOOLKIT_NAME)) ||\
 						echo $(STREAMS_INSTALL)/toolkits/$(TOOLKIT_NAME))
 
 SPLC_FLAGS?=
