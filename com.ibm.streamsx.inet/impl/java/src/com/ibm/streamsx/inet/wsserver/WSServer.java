@@ -90,23 +90,25 @@ public class WSServer extends WebSocketServer {
 
 		try {
 			if (wsSource != null) {
-				wsSource.produceTuples(message,conn.getRemoteSocketAddress().toString());
-				trace.log(TraceLevel.INFO,"onMessage() source-" + conn.getRemoteSocketAddress().getAddress().getHostAddress() + "::" + message);                    				                    		        						
+			  wsSource.produceTuples(message,conn.getRemoteSocketAddress().toString());
+			  if (trace.isEnabledFor(TraceLevel.TRACE)) { trace.log(TraceLevel.TRACE, "onMessage() source-" + conn.getRemoteSocketAddress().getAddress().getHostAddress() + "::" + message); }
 			} else {
-				trace.log(TraceLevel.INFO,"onMessage() sink-" + conn.getRemoteSocketAddress().getAddress().getHostAddress() + "::" + message);                    				                    		        						
+              if (trace.isEnabledFor(TraceLevel.TRACE)) { trace.log(TraceLevel.TRACE, "onMessage() sink-" + conn.getRemoteSocketAddress().getAddress().getHostAddress() + "::" + message); }
 			}
 			
 		} catch (Exception e) {
-			e.printStackTrace();
+    		trace.log(TraceLevel.ERROR, "WSServer onMessage(): " + message + " err: " + e.getMessage() );
+			//e.printStackTrace();
 		}
 	}
 
 	@Override
 	public void onError( WebSocket conn, Exception ex ) {
-		ex.printStackTrace();
-		if( conn != null ) {
-			// some errors like port binding failed may not be assignable to a specific websocket
-		}
+      trace.log(TraceLevel.ERROR, "WSServer onError(): client: " + ( conn!=null ? conn.getRemoteSocketAddress().toString() : "unknown" ) + " err: " + ex.getMessage() );
+      //ex.printStackTrace();
+      //if( conn != null ) {
+      //	// some errors like port binding failed may not be assignable to a specific websocket
+      //}
 	}
 
 	/**
@@ -123,15 +125,15 @@ public class WSServer extends WebSocketServer {
 		String message = null;
 		try {
 			message = jsonMessage.serialize();
-			trace.log(TraceLevel.INFO,"sendToAll() : " + message);                    									
+			if (trace.isEnabledFor(TraceLevel.TRACE)) { trace.log(TraceLevel.TRACE, "sendToAll() : " + message); }
 		} catch (IOException e) {
-    		trace.log(TraceLevel.ERROR, "sendToAll() :" + jsonMessage.toString() + " err: " + e.getMessage() );
+    		trace.log(TraceLevel.ERROR, "WSServer sendToAll(): " + jsonMessage.toString() + " err: " + e.getMessage() );
 		}
 		int cnt = 0;        		
 		if (message != null) {
 			synchronized ( con ) {
 				for( WebSocket c : con ) {
-					trace.log(TraceLevel.INFO,"sendToAll()" + c.getRemoteSocketAddress().getAddress().getHostAddress() + "::" + cnt++ + " of " + con.size());                    				                    		        									
+                  if (trace.isEnabledFor(TraceLevel.TRACE)) { trace.log(TraceLevel.TRACE, "sendToAll()" + c.getRemoteSocketAddress().getAddress().getHostAddress() + "::" + cnt++ + " of " + con.size()); }
 					c.send( message );
 				}
 			}

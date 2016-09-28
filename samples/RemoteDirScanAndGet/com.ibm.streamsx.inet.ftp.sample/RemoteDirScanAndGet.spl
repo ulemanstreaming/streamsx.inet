@@ -10,20 +10,20 @@ use com.ibm.streamsx.inet.ftp::*;
  * This sample uses the FTPReader operator and the FTPCommand operator.
  * It scans a remote directory and initiates file transfers for the found files.
  * Finally the transferred files are moved into an archive directory at the remote host.
- * The sample initiates a text file transfer for files with names *.txt 
- * and the sample initiates a binary file transfer for files with names *.bin.
+ * The sample initiates a text file transfer for files with names \*.txt 
+ * and the sample initiates a binary file transfer for files with names \*.bin.
  * The results a printed to stdout and in separate output text files.
- * @param $protocol the transmission protocol
- * @param $host the remote host name or IP address
- * @param $path the remote path to a directory which stores some files to be transferred 
+ * @param protocol the transmission protocol
+ * @param host the remote host name or IP address
+ * @param path the remote path to a directory which stores some files to be transferred 
  * files with the extension .txt are handled as text files and files with extension .bin are transferred as binary files. In case of sftp protocol 
  * the path should be an absolute path. In all other cases the path depends on the server configuration.
- * @param $username the remote user
- * @param $password the password
- * @param $verbosityDirScan the verbosity for the directory scan operator
- * @param $verbosityTxtFile the verbosity for the text file transfer operator
- * @param $verbosityBinFile the verbosity for the binary file transfer operator
- * @param $verbosityCommand the verbosity for the command execution operator
+ * @param username the remote user
+ * @param password the password
+ * @param verbosityDirScan the verbosity for the directory scan operator
+ * @param verbosityTxtFile the verbosity for the text file transfer operator
+ * @param verbosityBinFile the verbosity for the binary file transfer operator
+ * @param verbosityCommand the verbosity for the command execution operator
  */
 public composite RemoteDirScanAndGet {
 	param
@@ -50,8 +50,9 @@ public composite RemoteDirScanAndGet {
 	}
 	//scan the remote directory
 	(
-		stream<rstring fileName, uint64 size, rstring date, rstring user, boolean isFile> FilenameStream as OUT;
-		stream<rstring error> ErrorStream
+		stream<rstring fileName, uint64 size, rstring date, rstring user, boolean isFile, uint32 transferCount, uint32 failureCount, uint64 bytesTransferred> FilenameStream as OUT;
+		//stream<rstring error> ErrorStream
+		stream<rstring errorText, int32 error, uint32 transferCount, uint32 failureCount, uint64 bytesTransferred> ErrorStream as ERR
 	) = FTPReader(TriggerStream) {
 		param
 			protocol : $protocol;
@@ -62,12 +63,29 @@ public composite RemoteDirScanAndGet {
 			password : $password;
 			useEPSV : false;
 			curlVerbose : $verbosityDirScan;
-		output OUT :
-			fileName = FileName(),
-			size = FileSize(),
-			date = FileDate(),
-			user = FileUser(),
-			isFile = IsFile();
+		output
+			OUT :
+				fileName = FileName(),
+				size = FileSize(),
+				date = FileDate(),
+				user = FileUser(),
+				isFile = IsFile(),
+				//transferCount = NoTransfers(),
+				transferCount = TransferCount(),
+				//failureCount =  NoTransferFailures(),
+				failureCount = TransferFailureCount(),
+				//bytesTransferred = NoBytesTransferred();
+				bytesTransferred = BytesTransferred();
+			ERR:
+				errorText = ErrorText(),
+				//error = Error(),
+				error = ErrorCode(),
+				//transferCount = NoTransfers(),
+				transferCount = TransferCount(),
+				//failureCount =  NoTransferFailures(),
+				failureCount =  TransferFailureCount(),
+				//bytesTransferred = NoBytesTransferred();
+				bytesTransferred = BytesTransferred();
 		config placement : partitionColocation("DIR");
 	}
 	//print the results
@@ -182,8 +200,9 @@ public composite RemoteDirScanAndGet {
 	}
 	//move the file into archive directory
 	(
-		stream<boolean success, rstring command, rstring fileName, rstring file2> ResultStream as OUT;
-		stream<rstring error> ResultErrorStream
+		stream<boolean success, rstring command, rstring fileName, rstring file2, uint32 transferCount, uint32 failureCount> ResultStream as OUT;
+		//stream<rstring error> ResultErrorStream
+		stream<rstring errorText, int32 error, uint32 transferCount, uint32 failureCount> ResultErrorStream as ERR
 	) = FTPCommand(CommandStream as IN) {
 		param
 			protocol : $protocol;
@@ -196,9 +215,22 @@ public composite RemoteDirScanAndGet {
 			password : $password;
 			connectionCloseMode : never;
 			curlVerbose : $verbosityCommand;
-		output OUT :
-			fileName = IN.file,
-			success = Success();
+		output
+			OUT :
+				fileName = IN.file,
+				success = Success(),
+				//transferCount = NoCommands(),
+				transferCount = CommandCount(),
+				//failureCount =  NoFailures();
+				failureCount =  CommandFailureCount();
+			ERR :
+				errorText = ErrorText(),
+				//error = Error(),
+				error = ErrorCode(),
+				//transferCount = NoTransfers(),
+				transferCount = CommandCount(),
+				//failureCount =  NoTransferFailures();
+				failureCount = CommandFailureCount();
 		config placement : partitionColocation("MOVE");
 	}
 	//print out the command and the time

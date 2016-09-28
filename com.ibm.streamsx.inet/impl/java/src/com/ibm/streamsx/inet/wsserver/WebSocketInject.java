@@ -37,7 +37,7 @@ import com.ibm.streams.operator.samples.patterns.TupleProducer;
 @PrimitiveOperator(description=WebSocketInject.primDesc)
 @OutputPorts({@OutputPortSet(description=WebSocketInject.outPortDesc, cardinality=1, optional=false, windowPunctuationOutputMode=WindowPunctuationOutputMode.Free)})
 @Libraries("opt/wssupport/Java-WebSocket-1.3.0.jar")
-@Icons(location32="impl/java/icons/WebSocketInject_32.gif", location16="impl/java/icons/WebSocketInject_16.gif")
+@Icons(location32="icons/WebSocketInject_32.gif", location16="icons/WebSocketInject_16.gif")
 
 public class WebSocketInject extends TupleProducer {
 	final static String primDesc = 
@@ -208,10 +208,10 @@ public class WebSocketInject extends TupleProducer {
         	 trace.log(TraceLevel.INFO, "produceTuples(): idName:" + attrIdName + " Value:[" + id + "]");                            	
         }
         tuple.setString(attrMsgName, msg);
-        trace.log(TraceLevel.INFO,"produceTuples(): ATTR:" + attrMsgName + " Value:[" + msg + "]");                            	        
+        if (trace.isEnabledFor(TraceLevel.TRACE)) { trace.log(TraceLevel.TRACE, "produceTuples(): ATTR:" + attrMsgName + " Value:[" + msg + "]"); }
         // Submit tuple to output stream
         try {
-	    trace.log(TraceLevel.INFO,"produceTuples():submit id: " + id + " len:" + msg.length());;
+          if (trace.isEnabledFor(TraceLevel.TRACE)) { trace.log(TraceLevel.TRACE, "produceTuples():submit id: " + id + " len:" + msg.length());; }
 	    out.submit(tuple);
             getnMessagesReceived().incrementValue(1L);
             getnClientsConnected().setValue(wsServer.getClientCount());
